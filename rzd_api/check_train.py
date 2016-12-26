@@ -1,9 +1,9 @@
 # coding: utf-8
 """
-Тестовый скрипт для слежением за изменением наличия билетов на конретный поезд.
+Тестовый скрипт для слежением за изменением наличия билетов на конкретный поезд.
 Для отправки изменений в смс должны быть установлены переменные окружения:
 TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
-Twilio - сервис для отправки смс, подробнее: https://www.twilio.com/docs/api/rest)
+Twilio - сервис для отправки смс, подробнее: https://www.twilio.com/docs/api/rest
 
 Например, проверка билетов на поезд 234Ч Москва-Няндома на 29 декабря и отправить
 результат проверки на номер:
@@ -69,7 +69,6 @@ if prev_value != cars:
         body += 'No seats anymore :('
     print body
 
-    import ipdb; ipdb.set_trace()
     if args.phone:
         try:
             send_message(args.phone, body)
