@@ -39,7 +39,7 @@ class ApiClient(object):
         }
         return self.request('get', params=params)
 
-    def get_tickets(self, date, station_from, station_to, train):
+    def get_tickets(self, date, station_from, station_to, train, max_retries=10):
         """ Информация о билетах на конретный поезд
 
         :param date: дата и время отправления, объект datetime
@@ -60,10 +60,10 @@ class ApiClient(object):
             'tnum0': train,
             'dt0': date.strftime('%d.%m.%Y')
         }
-        response = self.request('post', params=params, data=data)
+        response = self.request('post', params=params, data=data, max_retries=max_retries)
         return [car for l in response.get('lst', []) for car in l.get('cars', [])]
 
-    def request(self, method_name='get', params=None, data=None):
+    def request(self, method_name='get', params=None, data=None, max_retries=20):
         params = params or {}
         params.setdefault('structure_id', self.STRUCTURE_ID)
 
@@ -83,10 +83,12 @@ class ApiClient(object):
             else:
                 params['rid'] = rid
 
-            # у них не сразу могут долетать данные о созданном rid, поэтому перед
-            # вторым запросом нужно чуть подождать
-            sleep(1)
-            return self._do_request(method, params=params, data=data)
+            counter = 0
+            while response_data['result'] == 'RID' and counter < max_retries:
+                sleep(2)
+                response_data = self._do_request(method, params=params, data=data)
+                counter += 1
+            return response_data
 
     def _do_request(self, method, params=None, data=None):
         res = method(self.BASE_URL, params=params, data=data)

@@ -44,7 +44,7 @@ except IndexError:
 try:
     client = ApiClient()
     data = client.get_tickets(d, args.st_from, args.st_to, args.train)
-    cars = set(c['cnumber'] for c in data)
+    cars = set((c['cnumber'], c['places']) for c in data)
 except Exception as e:
     print_exc()
     exit(1)
@@ -56,15 +56,15 @@ def send_message(number, body):
     print '[%s] Message sent!' % datetime.now()
     client.messages.create(to=number, from_=os.getenv('TWILIO_PHONE_NUMBER'), body=body)
 
-
-slv = shelve.open('/tmp/rzd_cars.slv')
+suffix = '%s-%s-%s-%s' % (args.date, args.st_from, args.st_to, args.train)
+slv = shelve.open('/tmp/rzd_cars-%s.slv' % suffix)
 prev_value = slv.get('cars') or set()
 print '[%s] Prev value %s, current %s!' % (datetime.now(), prev_value, cars)
 
 if prev_value != cars:
     body = 'Tickets change! '
     if cars:
-        body += 'Cars: %s' % ', '.join(cars)
+        body += 'Cars (%s): %s' % (len(cars), ', '.join(('%s: %s' % (c[0], c[1]) for c in cars))[:100])
     else:
         body += 'No seats anymore :('
     print body
